@@ -42,7 +42,7 @@ function init() {
      .then(function(answer) {
         switch(answer.firstQuestion) {
             case 'View all employee\'s':
-                viewAllEmployee();
+                viewAllEmployees();
                 break;
             case 'Add new employee':
                 addNewEmployee();
@@ -57,7 +57,21 @@ function init() {
      });
 }
 
-function viewAllEmployee() {}
+function viewAllEmployees() {
+    connection.query(
+        'SELECT * FROM employee',
+
+        function (err, res) {
+            if (err) throw err;
+
+            for(let i = 0; i < res.length; i++) {
+                console.log(res[i].first_name);
+            }
+
+            init();
+        }
+    );
+}
 
 function addNewEmployee() {
     const questions = [
@@ -99,7 +113,7 @@ function addNewEmployee() {
 
                 init();
             }
-        )
+        );
      });
 }
 
