@@ -46,3 +46,9 @@ function init() {
         }
     });
 }
+
+function viewAllEmployee() {}
+
+function addNewEmployee() {}
+
+function removeEmployee() {}
