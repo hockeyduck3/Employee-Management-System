@@ -73,6 +73,7 @@ function viewAllEmployees() {
     );
 }
 
+// Function to add employee's to the database
 function addNewEmployee() {
     const questions = [
         {
@@ -117,4 +118,60 @@ function addNewEmployee() {
      });
 }
 
-function removeEmployee() {}
+// Function for removing employee's from the database
+function removeEmployee() {
+    connection.query(
+        'SELECT * FROM employee',
+
+        // Function for creating the choices for the inquirer prompt
+        function (err, res) {
+            if (err) throw err;
+
+            var choiceArr = [];
+
+            for (let i = 0; i < res.length; i++) {
+                // Saving the values in and object and then pushing the object into the array will allow the .then code to search by id instead of by name.
+                // This way in case there is an Employee with the same name you can delete the exact one you want without worrying about deleting the other.
+                var choiceVal = {
+                    name: `id: ${res[i].id} || name: ${res[i].first_name} ${res[i].last_name}`,
+                    value: {
+                        id: res[i].id,
+                        name: `${res[i].first_name} ${res[i].last_name}`
+                    }
+                };
+
+                choiceArr.push(choiceVal);
+            }
+
+            inquirer
+             .prompt(
+                {
+                    type: 'list',
+                    name: 'removeEmployee',
+                    choices: choiceArr,
+                    message: 'Which employee would you like to remove from the database?'
+                }
+             )
+             .then(function(answer) {
+                let id = answer.removeEmployee.id;
+                let employeeName = answer.removeEmployee.name;
+
+                connection.query(
+                    'DELETE FROM employee WHERE ?',
+
+                    {
+                        id: id
+                    },
+
+                    function (err) {
+                        if (err) throw err;
+
+                        console.log(`${employeeName} has been removed from the database!`);
+
+                        init();
+                    }
+                );
+             });
+        }
+    );
+}
