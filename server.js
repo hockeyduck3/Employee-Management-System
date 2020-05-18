@@ -1,7 +1,9 @@
 // Dependencies
 const inquirer = require('inquirer');
 const mysql = require('mysql');
-const table = require('console.table');
+
+// While the dependency is not called anywhere, it will overwrite the built in console.table.
+const cTable = require('console.table');
 
 // Connection to the local sql server
 const connection = mysql.createConnection({
@@ -65,9 +67,23 @@ function viewAllEmployees() {
         function (err, res) {
             if (err) throw err;
 
+            var employeeArr = [];
+
             for(let i = 0; i < res.length; i++) {
-                console.log(`${res[i].first_name} ${res[i].last_name}`);
+                var employeeObj = {
+                    id: res[i].id,
+                    first_name: res[i].first_name,
+                    last_name: res[i].last_name
+                }
+
+                employeeArr.push(employeeObj);
             }
+
+            // Added in the line breaks before and after the table for readability
+            console.log('\n')
+            console.table(employeeArr)
+            console.log('\n')
+
 
             init();
         }
