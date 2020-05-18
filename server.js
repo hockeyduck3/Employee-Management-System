@@ -110,6 +110,12 @@ function addNewEmployee() {
             validate: fieldValidation
         },
         {
+            type: 'input',
+            name: 'role',
+            message: 'What is the employee\'s role?',
+            validate: fieldValidation
+        },
+        {
             type: 'list',
             name: 'manager',
             message: 'Who is the employee\'s manager?',
@@ -125,8 +131,8 @@ function addNewEmployee() {
             {
                 first_name: answer.firstName,
                 last_name: answer.lastName,
-                role_id: 1,
-                manager_id: 1
+                role_id: answer.role,
+                manager_id: answer.manager
             },
             function(err) {
                 if (err) throw err;
@@ -161,7 +167,7 @@ function addDepartment() {
                 init();
             }
         );
-     })
+     });
 }
 
 // Function for removing employee's from the database
