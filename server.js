@@ -40,7 +40,7 @@ function init() {
         type: 'list',
         name: 'firstQuestion',
         message: 'What would you like to do?',
-        choices: ['View all employee\'s', 'Add new employee', 'Remove an employee', 'Exit']
+        choices: ['Add department', 'View all employee\'s', 'Add new employee', 'Remove an employee', 'Exit']
      })
      .then(function(answer) {
         switch(answer.firstQuestion) {
@@ -53,6 +53,9 @@ function init() {
             case 'Remove an employee':
                 removeEmployee();
                 break;
+            case 'Add department':
+                addDepartment();
+                break;
             default:
                 console.log('See ya later!');
                 connection.end();
@@ -60,6 +63,7 @@ function init() {
      });
 }
 
+// Funtion to see all the Employees in the database
 function viewAllEmployees() {
     connection.query(
         'SELECT * FROM employee',
@@ -133,6 +137,31 @@ function addNewEmployee() {
             }
         );
      });
+}
+
+// Function to add a department
+function addDepartment() {
+    inquirer
+     .prompt({
+         type: 'input',
+         name: 'departmentName',
+         message: 'What would you like to name this department?'
+     })
+     .then(function(answer) {
+        connection.query(
+            'INSERT INTO department SET ?',
+            {
+                name: answer.departmentName
+            },
+            function(err) {
+                if (err) throw err;
+
+                console.log(`${answer.departmentName} has been added to the database!`);
+
+                init();
+            }
+        );
+     })
 }
 
 // Function for removing employee's from the database
