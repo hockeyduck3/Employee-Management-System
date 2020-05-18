@@ -180,11 +180,19 @@ function addDepartment() {
          message: 'What would you like to name this department?'
      })
      .then(function(answer) {
-        mkDepartment(answer.departmentName);
+        connection.query(
+            'INSERT INTO department SET ?',
+            {
+                name: answer.departmentName
+            },
+            function(err) {
+                if (err) throw err;
 
-        console.log(`${answer.departmentName} has been added to the database!`);
+                console.log(`${answer.departmentName} has been added to the database!`);
 
-        init();
+                init();
+            }
+        );
      });
 }
 
