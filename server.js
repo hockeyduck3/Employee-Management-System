@@ -2,6 +2,9 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 
+// Function dependencies
+const mkDepartment = require('./lib/department');
+
 // While the dependency is not called anywhere, it will overwrite the built in console.table.
 const cTable = require('console.table');
 
@@ -154,19 +157,11 @@ function addDepartment() {
          message: 'What would you like to name this department?'
      })
      .then(function(answer) {
-        connection.query(
-            'INSERT INTO department SET ?',
-            {
-                name: answer.departmentName
-            },
-            function(err) {
-                if (err) throw err;
+        mkDepartment(answer.departmentName);
 
-                console.log(`${answer.departmentName} has been added to the database!`);
+        console.log(`${answer.departmentName} has been added to the database!`);
 
-                init();
-            }
-        );
+        init();
      });
 }
 
