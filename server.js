@@ -1,6 +1,7 @@
 // Dependencies
 const inquirer = require('inquirer');
 const mysql = require('mysql');
+const table = require('console.table');
 
 // Connection to the local sql server
 const connection = mysql.createConnection({
@@ -37,7 +38,7 @@ function init() {
         type: 'list',
         name: 'firstQuestion',
         message: 'What would you like to do?',
-        choices: ['View all employee\'s', 'Add new employee', 'Remove employee', 'Exit']
+        choices: ['View all employee\'s', 'Add new employee', 'Remove an employee', 'Exit']
      })
      .then(function(answer) {
         switch(answer.firstQuestion) {
@@ -47,7 +48,7 @@ function init() {
             case 'Add new employee':
                 addNewEmployee();
                 break;
-            case 'Remove employee':
+            case 'Remove an employee':
                 removeEmployee();
                 break;
             default:
@@ -65,7 +66,7 @@ function viewAllEmployees() {
             if (err) throw err;
 
             for(let i = 0; i < res.length; i++) {
-                console.log(res[i].first_name);
+                console.log(`${res[i].first_name} ${res[i].last_name}`);
             }
 
             init();
