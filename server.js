@@ -43,22 +43,48 @@ function init() {
         type: 'list',
         name: 'firstQuestion',
         message: 'What would you like to do?',
-        choices: ['Add department', 'View all employee\'s', 'Add new employee', 'Remove an employee', 'Exit']
+        choices: [
+            'View All Employee\'s', 
+            'View All Employees By Department', 
+            'View Employee By Manager', 
+            'Add New Employee', 
+            'Add Department', 
+            'Remove An Employee', 
+            'Update Employee Role', 
+            'Update Employee Manager', 
+            'Exit'
+        ]
      })
      .then(function(answer) {
         switch(answer.firstQuestion) {
-            case 'View all employee\'s':
+            case 'View All Employee\'s':
                 viewAllEmployees();
                 break;
-            case 'Add new employee':
+
+            case 'View All Employees By Department':
+                break;
+
+            case 'View All Employees By Manager':
+                break;
+
+            case 'Add New Employee':
                 addNewEmployee();
                 break;
-            case 'Remove an employee':
-                removeEmployee();
-                break;
-            case 'Add department':
+
+            case 'Add Department':
                 addDepartment();
                 break;
+
+            case 'Remove An Employee':
+                removeEmployee();
+                break;
+
+            case 'Update Employee Role':
+                break;
+
+            case 'Update Employee Manager':
+                break;
+                
             default:
                 console.log('See ya later!');
                 connection.end();
@@ -76,7 +102,7 @@ function viewAllEmployees() {
 
             var employeeArr = [];
 
-            for(let i = 0; i < res.length; i++) {
+            for (let i = 0; i < res.length; i++) {
                 var employeeObj = {
                     id: res[i].id,
                     first_name: res[i].first_name,
@@ -87,10 +113,7 @@ function viewAllEmployees() {
             }
 
             // Added in the line breaks before and after the table for readability
-            console.log('\n')
-            console.table(employeeArr)
-            console.log('\n')
-
+            console.table(`\n ${employeeArr} \n`);
 
             init();
         }
