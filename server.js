@@ -172,14 +172,35 @@ function EmployeesByDepartment() {
                 }
              })
              .then(function(answer) {
+                var employeeManagerArr = [];
+
+                // This connection query will run first to make sure the code below will have an array to reference
+                // Just in case if one of the employee's manager is not null
                 connection.query(
-                    `SELECT * 
-                     FROM employee 
-                      INNER JOIN role 
-                        ON (role.id = employee.role_id)
-                      INNER JOIN department
+                    'SELECT * FROM employee',
+
+                    function(err, res) {
+                        if (err) throw err;
+
+                        res.forEach(item => {
+                            var employeeManagerVal = {
+                                id: item.id,
+                                name: (`${item.first_name} ${item.last_name}`)
+                            }
+
+                            employeeManagerArr.push(employeeManagerVal);
+                        });
+                    }
+                );
+
+                connection.query(
+                    `SELECT employee.*, role.title, role.salary, department.name
+                     FROM employee
+                     INNER JOIN role 
+                        ON (employee.role_id = role.id)
+                     INNER JOIN department
                         ON (role.department_id = department.id)
-                      WHERE ?`,
+                     WHERE ?`,
 
                     {
                         department_id: answer.departmentName.department_id
@@ -191,6 +212,20 @@ function EmployeesByDepartment() {
                         var byDepartmentArr = [];
         
                         res.forEach(item => {
+                            var byDepartmentManager_name = null;
+                            if (item.manager_id !== null) {
+
+                                // Loop through the array above and check to see which employee id matches the manager id
+                                for (let i = 0; i < employeeManagerArr.length; i++) {
+                                    if (item.manager_id === employeeManagerArr[i].id) {
+                                        byDepartmentManager_name = employeeManagerArr[i].name;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            console.log(byDepartmentManager_name)
+
                             byDepartmentArr.push({
                                 id: item.id,
                                 first_name: item.first_name,
@@ -198,7 +233,7 @@ function EmployeesByDepartment() {
                                 title: item.title,
                                 department: item.name,
                                 salary: item.salary,
-                                manager: item.manager_id
+                                manager: byDepartmentManager_name
                             });
                         });
 
