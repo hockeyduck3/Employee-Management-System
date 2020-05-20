@@ -54,15 +54,16 @@ function init() {
      })
      .then(function(answer) {
         switch(answer.firstQuestion) {
-            case 'View All Employee\'s':
+            case 'View All Employees':
                 viewAllEmployees();
                 break;
 
             case 'View All Employees By Department':
-                EmployeesByDepartment();
+                employeesByDepartment();
                 break;
 
             case 'View All Employees By Manager':
+                employeesByManager();
                 break;
 
             case 'Add New Employee':
@@ -90,7 +91,7 @@ function init() {
      });
 }
 
-// Funtion to see all the Employees in the database
+// Function to see all the Employees in the database
 function viewAllEmployees() {
     connection.query(
         `SELECT employee.*, role.title, role.salary, department.name
@@ -141,7 +142,8 @@ function viewAllEmployees() {
     );
 }
 
-function EmployeesByDepartment() {
+// Function to see all the Employees by their department
+function employeesByDepartment() {
     connection.query(
         'SELECT * FROM department',
 
@@ -152,7 +154,7 @@ function EmployeesByDepartment() {
              .prompt({
                 type: 'list',
                 name: 'departmentName',
-                message: 'Which department?',
+                message: 'Which department would you like?',
                 choices: function() {
                     var departmentChoice = [];
 
@@ -242,7 +244,7 @@ function EmployeesByDepartment() {
 
                             console.log(`\n${departmentTable}\n`);
                         } else {
-                            console.log('\nSorry but it looks like that Department doesn\'t have any employee\'s.\n')
+                            console.log('\nSorry, but it looks like that Department doesn\'t have any employees. :(\n')
                         }
 
                         init();
@@ -251,6 +253,11 @@ function EmployeesByDepartment() {
              })
         }
     );
+}
+
+// Function to see all the Employees by their Manager
+function employeesByManager() {
+
 }
 
 // Function to add employee's to the database
