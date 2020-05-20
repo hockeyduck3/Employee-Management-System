@@ -114,7 +114,7 @@ function viewAllEmployees() {
 
                     res.forEach(id => {
                         if (id.id === manager_id) {
-                            manager_name = (`${id.first_name} ${id.last_name}`);
+                            manager_name = `${id.first_name} ${id.last_name}`;
                         }
                     });
                 }
@@ -187,7 +187,7 @@ function employeesByDepartment() {
                         res.forEach(item => {
                             var employeeManagerVal = {
                                 id: item.id,
-                                name: (`${item.first_name} ${item.last_name}`)
+                                name: `${item.first_name} ${item.last_name}`
                             }
 
                             employeeManagerArr.push(employeeManagerVal);
@@ -274,7 +274,7 @@ function employeesByManager() {
                 if (item.manager_id !== null) {
                     res.forEach(element => {
                         if (item.manager_id === element.id) {
-                            let name = (`${element.first_name} ${element.last_name}`);
+                            let name = `${element.first_name} ${element.last_name}`;
 
                             var managerChoicesVal = {
                                 name: name,
