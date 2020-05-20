@@ -41,9 +41,9 @@ function init() {
         name: 'firstQuestion',
         message: 'What would you like to do?',
         choices: [
-            'View All Employee\'s', 
+            'View All Employees', 
             'View All Employees By Department', 
-            'View Employee\'s By Manager', 
+            'View Employees By Manager', 
             'Add New Employee', 
             'Add Department', 
             'Remove An Employee', 
@@ -62,7 +62,7 @@ function init() {
                 employeesByDepartment();
                 break;
 
-            case 'View All Employees By Manager':
+            case 'View Employees By Manager':
                 employeesByManager();
                 break;
 
@@ -257,7 +257,101 @@ function employeesByDepartment() {
 
 // Function to see all the Employees by their Manager
 function employeesByManager() {
+    connection.query(
+        `SELECT employee.*, role.title, role.salary, department.name
+         FROM employee
+         INNER JOIN role 
+            ON (employee.role_id = role.id)
+         INNER JOIN department
+            ON (role.department_id = department.id)`,
 
+        function(err, res) {
+            if (err) throw err;
+
+            var managerChoicesArr = [];
+
+            res.forEach(item => {
+                if (item.manager_id !== null) {
+                    res.forEach(element => {
+                        if (item.manager_id === element.id) {
+                            let name = (`${element.first_name} ${element.last_name}`);
+
+                            var managerChoicesVal = {
+                                name: name,
+                                value: {
+                                    name: name,
+                                    id: element.id
+                                }
+                            }
+
+                            managerChoicesArr.push(managerChoicesVal);
+                        }
+                    })
+                }
+            });
+
+            if (managerChoicesArr.length === 0) {
+                console.log('\nDoesn\'t look like you have any Employees with a Manager.\n');
+
+                init();
+            } else {
+                managerChoicesArr.push('Cancel');
+                
+                inquirer
+                 .prompt({
+                     type: 'list',
+                     name: 'managerPick',
+                     message: 'Which manager would you like to search by?',
+                     choices: managerChoicesArr
+                 })
+                 .then(function(response) {
+                    if (response.managerPick === 'Cancel') {
+                        init();
+                    } else {
+                        connection.query(
+                            `SELECT employee.*, role.title, role.salary, department.name
+                             FROM employee
+                             INNER JOIN role 
+                                 ON (employee.role_id = role.id)
+                             INNER JOIN department
+                                 ON (role.department_id = department.id)
+                             WHERE ?`, 
+
+                            {
+                                manager_id: response.managerPick.id
+                            },
+
+                            function (err, res) {
+                                if (err) throw err;
+
+                                var results = [];
+
+                                res.forEach(employee => {
+                                    var resultsVal = {
+                                        id: employee.id,
+                                        first_name: employee.first_name,
+                                        last_name: employee.last_name,
+                                        title: employee.title,
+                                        department: employee.name,
+                                        salary: employee.salary,
+                                        manager: response.managerPick.name
+                                    }
+
+                                    results.push(resultsVal);
+                                });
+
+                                let employeesByManagerTable = cTable.getTable(results);
+
+                                console.log(`\n${employeesByManagerTable}`);
+
+                                init();
+                            }
+                        );
+                    }
+                });
+            }
+        }
+    );
 }
 
 // Function to add employee's to the database
