@@ -2,9 +2,6 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 
-// Function dependencies
-const mkDepartment = require('./lib/department');
-
 // While the dependency is not called anywhere, it will overwrite the built in console.table.
 const cTable = require('console.table');
 
@@ -24,6 +21,8 @@ const connection = mysql.createConnection({
 // Connect to the sql server and start the program
 connection.connect((err) => {
     if (err) throw err;
+
+    console.log('\nWelcome to the Employee Management App!\n')
 
     init();
 });
@@ -46,7 +45,7 @@ function init() {
         choices: [
             'View All Employee\'s', 
             'View All Employees By Department', 
-            'View Employee By Manager', 
+            'View Employee\'s By Manager', 
             'Add New Employee', 
             'Add Department', 
             'Remove An Employee', 
@@ -122,6 +121,50 @@ function viewAllEmployees() {
 
 // Function to add employee's to the database
 function addNewEmployee() {
+    var roleChoices = [];
+    var managerChoice = [];
+
+    // Query for grabbing the different roles in the company
+    connection.query(
+        'SELECT * FROM role',
+
+        function(err, res) {
+            if (err) throw err;
+
+            res.forEach(element => {
+                var roleChoicesVal = {
+                    name: element.title,
+                    value: {
+                        role_id: element.id
+                    }
+                }
+
+                roleChoices.push(roleChoicesVal);
+            });
+        }
+    );
+
+    connection.query(
+        'SELECT id, first_name, last_name FROM employee',
+
+        function (err, res) {
+            if (err) throw err;
+
+            res.forEach(element => {
+                var managerChoiceVal = {
+                    name: `${element.first_name} ${element.last_name}`,
+                    value: {
+                        id: element.id
+                    }
+                }
+
+                managerChoice.push(managerChoiceVal);
+            });
+
+            managerChoice.push('No one')
+        }
+    );
+
     const questions = [
         {
             type: 'input',
@@ -136,34 +179,42 @@ function addNewEmployee() {
             validate: fieldValidation
         },
         {
-            type: 'input',
+            type: 'list',
             name: 'role',
             message: 'What is the employee\'s role?',
-            validate: fieldValidation
+            choices: roleChoices
         },
         {
             type: 'list',
             name: 'manager',
             message: 'Who is the employee\'s manager?',
-            choices: ['John doe', 'Jane doe']
+            choices: managerChoice
         }
     ];
 
     inquirer
      .prompt(questions)
      .then(function(answer) {
+        let managerAnswer;
+
+        if (answer.manager !== 'No one') {
+            managerAnswer = answer.manager.id;
+        } else {
+            managerAnswer = null;
+        }
+
         connection.query(
             'INSERT INTO employee SET ?',
             {
                 first_name: answer.firstName,
                 last_name: answer.lastName,
-                role_id: answer.role,
-                manager_id: answer.manager
+                role_id: answer.role.role_id,
+                manager_id: managerAnswer
             },
             function(err) {
                 if (err) throw err;
 
-                console.log(`${answer.firstName} ${answer.lastName} has been added to the Employee database!`);
+                console.log(`\n${answer.firstName} ${answer.lastName} has been added to the Employee database!\n`);
 
                 init();
             }
