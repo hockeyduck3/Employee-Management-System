@@ -1,8 +1,6 @@
 // Dependencies
 const inquirer = require('inquirer');
 const mysql = require('mysql');
-
-// While the dependency is not called anywhere, it will overwrite the built in console.table.
 const cTable = require('console.table');
 
 // Connection to the local sql server
@@ -61,6 +59,7 @@ function init() {
                 break;
 
             case 'View All Employees By Department':
+                EmployeesByDepartment();
                 break;
 
             case 'View All Employees By Manager':
@@ -111,10 +110,89 @@ function viewAllEmployees() {
                 employeeArr.push(employeeObj);
             }
 
+            let employeeTable = cTable.getTable(employeeArr);
+
             // Added in the line breaks before and after the table for readability
-            console.table(`\n ${employeeArr} \n`);
+            console.table(`\n${employeeTable}\n`);
 
             init();
+        }
+    );
+}
+
+function EmployeesByDepartment() {
+    connection.query(
+        'SELECT * FROM department',
+
+        function(err, res) {
+            if (err) throw err;
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'departmentName',
+                message: 'Which department?',
+                choices: function() {
+                    var departmentChoice = [];
+
+                    res.forEach(item => {
+                        var departmentVal = {
+                            name: item.name,
+                            value: {
+                                department_id: item.id
+                            }
+                        }
+
+                        departmentChoice.push(departmentVal);
+
+                    });
+
+                    return departmentChoice;
+                }
+             })
+             .then(function(answer) {
+                connection.query(
+                    `SELECT * 
+                     FROM employee 
+                      INNER JOIN role 
+                        ON (role.id = employee.role_id)
+                      INNER JOIN department
+                        ON (role.department_id = department.id)
+                      WHERE ?`,
+
+                    {
+                        department_id: answer.departmentName.department_id
+                    },
+
+                    function (err, res) {
+                        if (err) throw err;
+
+                        var byDepartmentArr = [];
+        
+                        res.forEach(item => {
+                            byDepartmentArr.push({
+                                id: item.id,
+                                first_name: item.first_name,
+                                last_name: item.last_name,
+                                title: item.title,
+                                department: item.name,
+                                salary: item.salary,
+                                manager: item.manager_id
+                            });
+                        });
+
+                        if (byDepartmentArr.length !== 0) {
+                            let departmentTable = cTable.getTable(byDepartmentArr);
+
+                            console.log(`\n${departmentTable}\n`);
+                        } else {
+                            console.log('\nSorry but it looks like that Department doesn\'t have any employee\'s.\n')
+                        }
+
+                        init();
+                    }
+                );
+             })
         }
     );
 }
