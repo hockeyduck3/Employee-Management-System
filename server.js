@@ -93,22 +93,43 @@ function init() {
 // Funtion to see all the Employees in the database
 function viewAllEmployees() {
     connection.query(
-        'SELECT * FROM employee',
+        `SELECT employee.*, role.title, role.salary, department.name
+         FROM employee
+         INNER JOIN role 
+            ON (employee.role_id = role.id)
+         INNER JOIN department
+            ON (role.department_id = department.id)`,
 
         function (err, res) {
             if (err) throw err;
 
             var employeeArr = [];
 
-            for (let i = 0; i < res.length; i++) {
-                var employeeObj = {
-                    id: res[i].id,
-                    first_name: res[i].first_name,
-                    last_name: res[i].last_name
+            res.forEach(element => {
+                var manager_name = null;
+
+                if (element.manager_id !== null) {
+                    var manager_id = element.manager_id;
+
+                    res.forEach(id => {
+                        if (id.id === manager_id) {
+                            manager_name = (`${id.first_name} ${id.last_name}`);
+                        }
+                    });
                 }
 
-                employeeArr.push(employeeObj);
-            }
+                let employeeVal = {
+                    id: element.id,
+                    first_name: element.first_name,
+                    last_name: element.last_name,
+                    title: element.title,
+                    department: element.name,
+                    salary: element.salary,
+                    manager: manager_name
+                }
+
+                employeeArr.push(employeeVal);
+            });
 
             let employeeTable = cTable.getTable(employeeArr);
 
