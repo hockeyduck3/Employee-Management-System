@@ -564,6 +564,88 @@ function addDepartment() {
 }
 
 function updateEmployeeManager() {
+    connection.query(
+        'SELECT * FROM employee',
+
+        function(err, res) {
+            if (err) throw err;
+
+            var employeeUpdateChoice = [];
+
+            res.forEach(employee => {
+              let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
+              
+              let employeeUpdateVal = {
+                name: name,
+                value: {
+                    name: name,
+                    first_name: employee.first_name,
+                    name_without_id: `${employee.first_name} ${employee.last_name}`,
+                    id: employee.id
+                }
+              }
+
+              employeeUpdateChoice.push(employeeUpdateVal);
+            });
+
+            employeeUpdateChoice.push('Cancel');
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'employeeToUpdate',
+                message: 'Which Employee would you like to update?',
+                choices: employeeUpdateChoice
+             }).then(function(firstAnswer) {
+                if (firstAnswer.employeeToUpdate === 'Cancel') {
+                    console.clear();
+                    init();
+                } else {
+                    inquirer
+                     .prompt({
+                         type: 'list',
+                         name: 'managerChoice',
+                         message: `Who would you like ${firstAnswer.employeeToUpdate.first_name}'s manager to be?`,
+                         choices: function() {
+                            let newChoice = employeeUpdateChoice.filter(x => x.name !== firstAnswer.employeeToUpdate.name);
+
+                            let index = newChoice.indexOf('Cancel');
+
+                            newChoice[index] = 'No one';
+
+                            return newChoice
+                         }
+                     }).then(function(secondAnswer) {
+                        connection.query(
+                            'UPDATE employee SET ? WHERE ?',
+                            [
+                                {
+                                    manager_id: secondAnswer.managerChoice.id
+                                },
+                                {
+                                    id: firstAnswer.employeeToUpdate.id
+                                }
+                            ],
+
+                            function(err, res) {
+                                if (err) throw err;
+
+                                console.clear();
+
+                                if (secondAnswer.managerChoice !== 'No one') {
+                                    console.log(`${firstAnswer.employeeToUpdate.first_name}'s manager has been updated to ${secondAnswer.managerChoice.name_without_id}!\n`)
+                                } else {
+                                    console.log(`${firstAnswer.employeeToUpdate.first_name}'s manager has been updated!\n`);
+                                }
+
+                                init();
+                            }
+                        );
+                     })
+                }
+             });
+        }
+    );
 }
 
 function removeEmployee() {
