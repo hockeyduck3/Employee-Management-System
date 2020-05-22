@@ -20,6 +20,8 @@ const connection = mysql.createConnection({
 connection.connect((err) => {
     if (err) throw err;
 
+    console.clear();
+
     console.log('\nWelcome to the Employee Management App!\n')
 
     init();
@@ -33,6 +35,8 @@ const fieldValidation = async input => {
     return true;
 }
 
+var secondSetQuestions;
+
 // First function to run
 function init() {
     inquirer
@@ -41,54 +45,131 @@ function init() {
         name: 'firstQuestion',
         message: 'What would you like to do?',
         choices: [
-            'View All Employees', 
-            'View All Employees By Department', 
-            'View Employees By Manager', 
-            'Add New Employee', 
-            'Add Department', 
-            'Remove An Employee', 
-            'Update Employee Role', 
-            'Update Employee Manager', 
+            'View', 
+            'Add', 
+            'Update', 
+            'Remove',  
             'Exit'
         ]
      })
      .then(function(answer) {
         switch(answer.firstQuestion) {
-            case 'View All Employees':
-                viewAllEmployees();
+            case 'View':
+                secondSetQuestions = [
+                    {
+                        type: 'list',
+                        name: 'secondQuestion',
+                        message: 'What would you like to view?',
+                        choices: [
+                            'View All Employees',
+                            'View All Employees By Department',
+                            'View All Employees By Manager',
+                            'Back'
+                        ]
+                    }
+                ]
+                secondQuestion();
                 break;
 
-            case 'View All Employees By Department':
-                employeesByDepartment();
+            case 'Add':
+                secondSetQuestions = [
+                    {
+                        type: 'list',
+                        name: 'secondQuestion',
+                        message: 'What would you like to add?',
+                        choices: [
+                            'Add New Employee',
+                            'Add New Department',
+                            'Back'
+                        ]
+                    }
+                ]
+                secondQuestion();
                 break;
 
-            case 'View Employees By Manager':
-                employeesByManager();
+            case 'Update': 
+                secondSetQuestions = [
+                    {
+                        type: 'list',
+                        name: 'secondQuestion',
+                        message: 'What would you like to update?',
+                        choices: [
+                            'Update Employee Role',
+                            'Update Employee Manager',
+                            'Back'
+                        ]
+                    }
+                ]
+                secondQuestion();
                 break;
 
-            case 'Add New Employee':
-                addNewEmployee();
+            case 'Remove':
+                secondSetQuestions = [
+                    {
+                        type: 'list',
+                        name: 'secondQuestion',
+                        message: 'What would you like to remove?',
+                        choices: [
+                            'Remove An Employee',
+                            'Back'
+                        ]
+                    }
+                ]
+                secondQuestion();
                 break;
 
-            case 'Add Department':
-                addDepartment();
-                break;
-
-            case 'Remove An Employee':
-                removeEmployee();
-                break;
-
-            case 'Update Employee Role':
-                break;
-
-            case 'Update Employee Manager':
-                break;
-                
             default:
-                console.log('See ya later!');
+                console.clear()
+                console.log('\nSee ya later!');
                 connection.end();
         }
      });
+
+    // I chose to have this function nested inside of the init function
+    // Only because If I had just nested another inquirer prompt inside of the first one
+    // Then the exit command would not work properly
+    function secondQuestion() {
+        inquirer
+         .prompt(secondSetQuestions)
+         .then(function(answer) {
+            console.clear();
+
+            switch(answer.secondQuestion) {
+                case 'View All Employees':
+                    viewAllEmployees();
+                    break;
+    
+                case 'View All Employees By Department':
+                    employeesByDepartment();
+                    break;
+    
+                case 'View Employees By Manager':
+                    employeesByManager();
+                    break;
+    
+                case 'Add New Employee':
+                    addNewEmployee();
+                    break;
+    
+                case 'Add Department':
+                    addDepartment();
+                    break;
+    
+                case 'Remove An Employee':
+                    removeEmployee();
+                    break;
+    
+                case 'Update Employee Role':
+                    break;
+    
+                case 'Update Employee Manager':
+                    break;
+                    
+                default:
+                    init();
+            } 
+         })
+    }
 }
 
 // Function to see all the Employees in the database
