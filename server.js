@@ -30,6 +30,8 @@ connection.connect((err) => {
 const fieldValidation = async input => {
     if (input.trim() === '') {
        return 'Field cannot be left blank';
+    } else if (input.match(/[0-9]/g)) {
+        return 'Field cannot contain numbers';
     }
 
     return true;
@@ -555,9 +557,10 @@ function addNewEmployee() {
 function addDepartment() {
     inquirer
      .prompt({
-         type: 'input',
-         name: 'departmentName',
-         message: 'What would you like to name this department?'
+        type: 'input',
+        name: 'departmentName',
+        message: 'What would you like to name this department?',
+        validate: fieldValidation
      })
      .then(function(answer) {
         console.clear();
