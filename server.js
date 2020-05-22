@@ -686,6 +686,8 @@ function removeEmployee() {
                 choiceArr.push(choiceVal);
             }
 
+            choiceArr.push('Cancel');
+
             inquirer
              .prompt(
                 {
@@ -699,23 +701,39 @@ function removeEmployee() {
                 let id = answer.removeEmployee.id;
                 let employeeName = answer.removeEmployee.name;
 
-                console.clear();
+                if (answer.removeEmployee === 'Cancel') {
+                    console.clear();
+                    init();
+                } else {
+                    inquirer
+                     .prompt({
+                        type: 'confirm',
+                        name: 'areYouSure',
+                        message: `Are you sure you'd like to delete ${employeeName} from the database?`
+                     }).then(function(trueOrFalse) {
+                        console.clear();
 
-                connection.query(
-                    'DELETE FROM employee WHERE ?',
-
-                    {
-                        id: id
-                    },
-
-                    function (err) {
-                        if (err) throw err;
-
-                        console.log(`${employeeName} has been removed from the database!\n`);
-
-                        init();
-                    }
-                );
+                        if (trueOrFalse.areYouSure) {
+                            connection.query(
+                                'DELETE FROM employee WHERE ?',
+            
+                                {
+                                    id: id
+                                },
+            
+                                function (err) {
+                                    if (err) throw err;
+            
+                                    console.log(`${employeeName} has been removed from the database!\n`);
+            
+                                    init();
+                                }
+                            );
+                        } else {
+                            removeEmployee();
+                        }
+                     });
+                }
              });
         }
     );
