@@ -164,6 +164,7 @@ function init() {
                     break;
     
                 case 'Update Employee Role':
+                    updateEmployeeRole()
                     break;
     
                 case 'Update Employee Manager':
@@ -267,6 +268,7 @@ function employeesByDepartment() {
                 if (answer.departmentName === 'Cancel') {
                     init();
                 } else {
+                    
                     // This connection query will run first to make sure the code below will have an array to reference
                     // Just in case if one of the employee's manager is not null
                     connection.query(
@@ -663,6 +665,60 @@ function updateEmployeeManager() {
 }
 
 function updateEmployeeRole() {
+    connection.query(
+        `SELECT employee.*, role.title, role.department_id
+         FROM employee
+         INNER JOIN role 
+           ON (employee.role_id = role.id)`,
+
+        function(err, res) {
+            if (err) throw err;
+
+            console.log(res)
+
+            var employeeUpdateChoice = [];
+
+            res.forEach(employee => {
+                let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
+              
+                let employeeUpdateVal = {
+                    name: name,
+                    value: {
+                        name: name,
+                        first_name: employee.first_name,
+                        id: employee.id,
+                        department_id: employee.department_id
+                    }
+                }
+
+                employeeUpdateChoice.push(employeeUpdateVal);
+            });
+
+            employeeUpdateChoice.push('Cancel');
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'employee',
+                message: 'Which employee would you like to update?',
+                choices: employeeUpdateChoice
+             }).then(function(response) {
+                connection.query(
+                    'SELECT * FROM role WHERE ?',
+
+                    {
+                        department_id: response.employee.department_id
+                    },
+
+                    function(err, res) {
+                        if (err) throw err;
+
+                        console.log(res)
+                    }
+                );
+             })
+        }
+    );
 }
 
 function removeEmployee() {
