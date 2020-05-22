@@ -68,6 +68,7 @@ function init() {
                         ]
                     }
                 ]
+
                 secondQuestion();
                 break;
 
@@ -84,6 +85,7 @@ function init() {
                         ]
                     }
                 ]
+
                 secondQuestion();
                 break;
 
@@ -100,6 +102,7 @@ function init() {
                         ]
                     }
                 ]
+                
                 secondQuestion();
                 break;
 
@@ -115,6 +118,7 @@ function init() {
                         ]
                     }
                 ]
+
                 secondQuestion();
                 break;
 
@@ -163,6 +167,7 @@ function init() {
                     break;
     
                 case 'Update Employee Manager':
+                    updateEmployeeManager();
                     break;
                     
                 default:
@@ -172,7 +177,6 @@ function init() {
     }
 }
 
-// Function to see all the Employees in the database
 function viewAllEmployees() {
     connection.query(
         `SELECT employee.*, role.title, role.salary, department.name
@@ -223,7 +227,6 @@ function viewAllEmployees() {
     );
 }
 
-// Function to see all the Employees by their department
 function employeesByDepartment() {
     connection.query(
         'SELECT * FROM department',
@@ -336,7 +339,6 @@ function employeesByDepartment() {
     );
 }
 
-// Function to see all the Employees by their Manager
 function employeesByManager() {
     connection.query(
         `SELECT employee.*, role.title, role.salary, department.name
@@ -435,7 +437,6 @@ function employeesByManager() {
     );
 }
 
-// Function to add employee's to the database
 function addNewEmployee() {
     var roleChoices = [];
     var managerChoice = [];
@@ -538,7 +539,6 @@ function addNewEmployee() {
      });
 }
 
-// Function to add a department
 function addDepartment() {
     inquirer
      .prompt({
@@ -563,7 +563,9 @@ function addDepartment() {
      });
 }
 
-// Function for removing employee's from the database
+function updateEmployeeManager() {
+}
+
 function removeEmployee() {
     connection.query(
         'SELECT * FROM employee',
@@ -578,7 +580,7 @@ function removeEmployee() {
                 // Saving the values in and object and then pushing the object into the array will allow the .then code to search by id instead of by name.
                 // This way in case there is an Employee with the same name you can delete the exact one you want without worrying about deleting the other.
                 var choiceVal = {
-                    name: `id: ${res[i].id} || name: ${res[i].first_name} ${res[i].last_name}`,
+                    name: `${res[i].first_name} ${res[i].last_name} id: ${res[i].id}`,
                     value: {
                         id: res[i].id,
                         name: `${res[i].first_name} ${res[i].last_name}`
