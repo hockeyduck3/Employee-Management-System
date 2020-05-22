@@ -674,8 +674,6 @@ function updateEmployeeRole() {
         function(err, res) {
             if (err) throw err;
 
-            console.log(res)
-
             var employeeUpdateChoice = [];
 
             res.forEach(employee => {
@@ -713,7 +711,53 @@ function updateEmployeeRole() {
                     function(err, res) {
                         if (err) throw err;
 
-                        console.log(res)
+                        var positionArr = [];
+
+                        res.forEach(position => {
+                            var positionVal = {
+                                name: position.title,
+                                value: {
+                                    id: position.id,
+                                    position_name: position.title
+                                }
+                            }
+
+                            positionArr.push(positionVal);
+                        });
+
+                        inquirer
+                         .prompt({
+                            type: 'list',
+                            name: 'positionChoice',
+                            message: `Which position would you like ${response.employee.first_name} to have?`,
+                            choices: positionArr
+                         })
+                         .then(function(answer) {
+                            console.log(answer)
+
+                            connection.query(
+                                'UPDATE employee SET ? WHERE ?',
+
+                                [
+                                    {
+                                        role_id: answer.positionChoice.id
+                                    },
+                                    {
+                                        id: response.employee.id
+                                    }
+                                ],
+
+                                function (err, res) {
+                                    if (err) throw err;
+
+                                    console.clear();
+
+                                    console.log(`${response.employee.first_name}'s position has been updated to ${answer.positionChoice.position_name}!\n`);
+
+                                    init();
+                                }
+                            );
+                         })
                     }
                 );
              })
