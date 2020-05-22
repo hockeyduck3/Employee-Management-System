@@ -662,6 +662,9 @@ function updateEmployeeManager() {
     );
 }
 
+function updateEmployeeRole() {
+}
+
 function removeEmployee() {
     connection.query(
         'SELECT * FROM employee',
