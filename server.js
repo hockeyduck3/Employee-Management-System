@@ -2,6 +2,9 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 const cTable = require('console.table');
+const logo = require('asciiart-logo');
+const config = require('./package.json');
+console.log(logo(config).render());
 
 // Connection to the local sql server
 const connection = mysql.createConnection({
@@ -22,7 +25,17 @@ connection.connect((err) => {
 
     console.clear();
 
-    console.log('\nWelcome to the Employee Management App!\n')
+    console.log(
+        logo({
+            name: 'Employee Management App',
+            font: 'Standard',
+            lineChars: 5,
+            borderColor: 'grey',
+            logoColor: 'bold-green',
+            textColor: 'green',
+        })
+        .render()
+    );
 
     init();
 });
