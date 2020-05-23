@@ -52,6 +52,8 @@ const fieldValidation = async input => {
 
 var secondSetQuestions;
 
+// All the functions need for the application
+
 // First function to run
 function init() {
     inquirer
@@ -217,10 +219,6 @@ function init() {
          })
     }
 }
-
-
-// All the functions need for the application
-
 
 // All of the view functions
 function viewAllEmployees() {
@@ -1032,6 +1030,78 @@ function removeEmployee() {
 }
 
 function removeDepartment() {
+    console.clear();
+
+    connection.query(
+        'SELECT * FROM department',
+
+        function(err, res) {
+            if (err) throw err;
+            
+            var removeDepartmentArr = [];
+
+            res.forEach(department => {
+                var removeDepartmentVal = {
+                    name: department.name,
+                    value: {
+                        id: department.id,
+                        name: department.name
+                    }
+                }
+
+                removeDepartmentArr.push(removeDepartmentVal);
+            });
+
+            removeDepartmentArr.push('Cancel');
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'departmentChoice',
+                message: 'Which department would you like to remove?',
+                choices: removeDepartmentArr
+             })
+             .then(function(result) {
+                if (result.departmentChoice === 'Cancel') {
+                    console.clear();
+
+                    init();
+                } else {
+                    inquirer
+                     .prompt({
+                        type: 'confirm',
+                        name: 'departmentAreYouSure',
+                        message: `Are you sure you would like to remove the ${result.departmentChoice.name} department?`
+                     })
+                     .then(function(answer) {
+                        if (answer.departmentAreYouSure) {
+                            console.clear();
+
+                            connection.query(
+                                'DELETE FROM department WHERE ?',
+
+                                {
+                                    id: result.departmentChoice.id
+                                },
+
+                                function(err, res) {
+                                    if (err) throw err;
+
+                                    console.log(`The ${result.departmentChoice.name} department has been removed from the database!\n`);
+
+                                    init();
+                                }
+                            );
+                        } else {
+                            console.clear();
+                            
+                            removeDepartment();
+                        }
+                     })
+                }
+             })
+        }
+    );
 }
 
 function removeRole() {
