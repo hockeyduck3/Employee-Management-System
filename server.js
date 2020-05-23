@@ -298,6 +298,37 @@ function viewAllDepartments() {
 }
 
 function viewAllRoles() {
+    console.clear();
+
+    connection.query(
+        `SELECT role.*, department.name 
+         FROM role
+         INNER JOIN department
+            ON (department.id = role.department_id)`,
+
+        function(err, res) {
+            if (err) throw err;
+
+            var roleArr = [];
+
+            res.forEach(role => {
+                var roleVal = {
+                    id: role.id,
+                    title: role.title,
+                    salary: role.salary,
+                    department: role.name
+                }
+
+                roleArr.push(roleVal);
+            });
+
+            let roleTable = cTable.getTable(roleArr);
+
+            console.log(roleTable);
+
+            init();
+        }
+    );
 }
 
 function employeesByDepartment() {
@@ -455,7 +486,7 @@ function employeesByManager() {
             });
 
             if (managerChoicesArr.length === 0) {
-                console.log('\nDoesn\'t look like you have any Employees with a Manager.\n');
+                console.log('Doesn\'t look like you have any Employees with a Manager.\n');
 
                 init();
             } else {
