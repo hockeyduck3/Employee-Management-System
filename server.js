@@ -79,6 +79,8 @@ function init() {
                             'View All Employees',
                             'View All Employees By Department',
                             'View All Employees By Manager',
+                            'View All Departments',
+                            'View All Roles',
                             'Back'
                         ]
                     }
@@ -96,6 +98,7 @@ function init() {
                         choices: [
                             'Add New Employee',
                             'Add New Department',
+                            'Add New Role',
                             'Back'
                         ]
                     }
@@ -129,6 +132,8 @@ function init() {
                         message: 'What would you like to remove?',
                         choices: [
                             'Remove An Employee',
+                            'Remove A Department',
+                            'Remove A Role',
                             'Back'
                         ]
                     }
@@ -166,6 +171,14 @@ function init() {
                     employeesByManager();
                     break;
     
+                case 'View All Departments':
+                    viewAllDepartments();
+                    break;
+                
+                case 'View All Roles':
+                    viewAllRoles();
+                    break;
+
                 case 'Add New Employee':
                     addNewEmployee();
                     break;
@@ -173,19 +186,31 @@ function init() {
                 case 'Add New Department':
                     addDepartment();
                     break;
-    
-                case 'Remove An Employee':
-                    removeEmployee();
+
+                case 'Add New Role':
+                    addRole();
                     break;
     
                 case 'Update Employee Role':
                     updateEmployeeRole()
                     break;
-    
+                        
                 case 'Update Employee Manager':
                     updateEmployeeManager();
                     break;
-                    
+                            
+                case 'Remove An Employee':
+                    removeEmployee();
+                    break;
+
+                case 'Remove A Department':
+                    removeDepartment();
+                    break;
+
+                case 'Remove A Role':
+                    removeRole();
+                    break;
+
                 default:
                     init();
             } 
@@ -241,6 +266,12 @@ function viewAllEmployees() {
             init();
         }
     );
+}
+
+function viewAllDepartments() {
+}
+
+function viewAllRoles() {
 }
 
 function employeesByDepartment() {
@@ -595,6 +626,9 @@ function addDepartment() {
      });
 }
 
+function addRole() {
+}
+
 function updateEmployeeManager() {
     connection.query(
         'SELECT * FROM employee',
@@ -856,4 +890,10 @@ function removeEmployee() {
              });
         }
     );
+}
+
+function removeDepartment() {
+}
+
+function removeRole() {
 }
