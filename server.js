@@ -691,6 +691,82 @@ function addDepartment() {
 }
 
 function addRole() {
+    console.clear();
+
+    connection.query(
+        'SELECT * FROM department',
+
+        function(err, res) {
+            if (err) throw err;
+
+            var departmentChoiceArr = [];
+
+            res.forEach(department => {
+                var departmentChoiceVal = {
+                    name: department.name,
+                    value: {
+                        id: department.id,
+                        name: department.name
+                    }
+                }
+
+                departmentChoiceArr.push(departmentChoiceVal);
+            });
+
+            departmentChoiceArr.push('Cancel');
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'chosenDepartment',
+                message: 'Which department would you like to add this new role to?',
+                choices: departmentChoiceArr
+             })
+             .then(function(answer) {
+                if (answer.chosenDepartment === 'Cancel') {
+                    console.clear();
+
+                    init();
+                } else {
+                    inquirer
+                     .prompt([
+                        {
+                            type: 'input',
+                            name: 'roleName',
+                            message: 'What would you like to call this role?',
+                            validate: fieldValidation    
+                        },
+                        {
+                            type: 'input',
+                            name: 'roleSalary',
+                            message: 'What is the yearly salary for this role?'
+                        }
+                     ])
+                     .then(function(roleAnswer) {
+                        connection.query(
+                            'INSERT INTO role SET ?',
+
+                            {
+                                title: roleAnswer.roleName,
+                                salary: roleAnswer.roleSalary,
+                                department_id: answer.chosenDepartment.id
+                            },
+
+                            function (err, res) {
+                                if (err) throw err;
+
+                                console.clear();
+
+                                console.log(`${roleAnswer.roleName} has been added to the database!\n`);
+
+                                init();
+                            }
+                        );
+                     })
+                }
+             });
+        }
+    );
 }
 
 
