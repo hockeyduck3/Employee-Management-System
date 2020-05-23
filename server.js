@@ -735,7 +735,6 @@ function updateEmployeeRole() {
                         name: name,
                         first_name: employee.first_name,
                         id: employee.id,
-                        department_id: employee.department_id
                     }
                 }
 
@@ -752,11 +751,7 @@ function updateEmployeeRole() {
                 choices: employeeUpdateChoice
              }).then(function(response) {
                 connection.query(
-                    'SELECT * FROM role WHERE ?',
-
-                    {
-                        department_id: response.employee.department_id
-                    },
+                    'SELECT * FROM role',
 
                     function(err, res) {
                         if (err) throw err;
