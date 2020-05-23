@@ -269,6 +269,32 @@ function viewAllEmployees() {
 }
 
 function viewAllDepartments() {
+    console.clear();
+
+    connection.query(
+        'SELECT * FROM department',
+
+        function(err, res) {
+            if (err) throw err;
+
+            var departmentArr = [];
+
+            res.forEach(department => {
+                var departmentResults = {
+                    id: department.id,
+                    department_name: department.name
+                }
+
+                departmentArr.push(departmentResults);
+            });
+
+            let newTable = cTable.getTable(departmentArr);
+
+            console.log(newTable);
+
+            init();
+        }
+    );
 }
 
 function viewAllRoles() {
