@@ -218,6 +218,11 @@ function init() {
     }
 }
 
+
+// All the functions need for the application
+
+
+// All of the view functions
 function viewAllEmployees() {
     connection.query(
         `SELECT employee.*, role.title, role.salary, department.name
@@ -551,6 +556,8 @@ function employeesByManager() {
     );
 }
 
+
+// All of the add functions
 function addNewEmployee() {
     var roleChoices = [];
     var managerChoice = [];
@@ -686,6 +693,8 @@ function addDepartment() {
 function addRole() {
 }
 
+
+// All the update functions
 function updateEmployeeManager() {
     connection.query(
         'SELECT * FROM employee',
@@ -867,6 +876,8 @@ function updateEmployeeRole() {
     );
 }
 
+
+// All the remove functions
 function removeEmployee() {
     connection.query(
         'SELECT * FROM employee',
