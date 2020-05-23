@@ -1105,4 +1105,76 @@ function removeDepartment() {
 }
 
 function removeRole() {
+    console.clear();
+
+    connection.query(
+        'SELECT * FROM role',
+
+        function(err, res) {
+            if (err) throw err;
+
+            var removeRoleArr = [];
+
+            res.forEach(role => {
+                var removeRoleVal = {
+                    name: role.title,
+                    value: {
+                        id: role.id,
+                        name: role.title
+                    }
+                }
+
+                removeRoleArr.push(removeRoleVal);
+            });
+
+            removeRoleArr.push('Cancel');
+
+            inquirer
+             .prompt({
+                type: 'list',
+                name: 'removeRoleChoice',
+                message: 'Which role would you like to remove?',
+                choices: removeRoleArr
+             })
+             .then(function(result) {
+                if (result.removeRoleChoice === 'Cancel') {
+                    console.clear();
+
+                    init();
+                } else {
+                    inquirer
+                     .prompt({
+                        type: 'confirm',
+                        name: 'roleAreYouSure',
+                        message: `Are you sure you would like to remove ${result.removeRoleChoice.name} from the database?`
+                     })
+                     .then(function(answer) {
+                        if (answer.roleAreYouSure) {
+                            connection.query(
+                                'DELETE FROM role WHERE ?',
+
+                                {
+                                    id: result.removeRoleChoice.id
+                                },
+
+                                function (err, res) {
+                                    if (err) throw err;
+
+                                    console.clear();
+
+                                    console.log(`The role of ${result.removeRoleChoice.name} has been removed from the database!\n`);
+
+                                    init();
+                                }
+                            );
+                        } else {
+                            console.clear();
+
+                            removeRole();
+                        }
+                     })
+                }
+             })
+        }
+    );
 }
