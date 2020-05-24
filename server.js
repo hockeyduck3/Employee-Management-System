@@ -51,6 +51,7 @@ const fieldValidation = async input => {
 }
 
 var secondSetQuestions;
+var removeVal;
 
 // All the functions need for the application
 
@@ -202,15 +203,18 @@ function init() {
                     break;
                             
                 case 'Remove An Employee':
-                    removeEmployee();
+                    removeVal = 'employee';
+                    remove();
                     break;
 
                 case 'Remove A Department':
-                    removeDepartment();
+                    removeVal = 'department';
+                    remove();
                     break;
 
                 case 'Remove A Role':
-                    removeRole();
+                    removeVal = 'role';
+                    remove();
                     break;
 
                 default:
@@ -952,117 +956,74 @@ function updateEmployeeRole() {
 
 
 // All the remove functions
-function removeEmployee() {
-    connection.query(
-        'SELECT * FROM employee',
+function remove() {
+    console.clear();
 
-        // Function for creating the choices for the inquirer prompt
+    connection.query(
+        `SELECT * FROM ${removeVal}`,
+
         function (err, res) {
             if (err) throw err;
 
             var choiceArr = [];
+            var choiceVal;
 
-            for (let i = 0; i < res.length; i++) {
-                // Saving the values in and object and then pushing the object into the array will allow the .then code to search by id instead of by name.
-                // This way in case there is an Employee with the same name you can delete the exact one you want without worrying about deleting the other.
-                var choiceVal = {
-                    name: `${res[i].first_name} ${res[i].last_name} id: ${res[i].id}`,
-                    value: {
-                        id: res[i].id,
-                        name: `${res[i].first_name} ${res[i].last_name}`
+            // If the user chose to remove an Employee
+            if (removeVal === 'employee') {
+                res.forEach(employee => {
+                    choiceVal = {
+                        name: `${employee.first_name} ${employee.last_name}, id: ${employee.id}`,
+                        value: {
+                            id: employee.id,
+                            name: `${employee.first_name} ${employee.last_name}`
+                        }
                     }
-                };
 
-                choiceArr.push(choiceVal);
+                    choiceArr.push(choiceVal);
+                });
+            } 
+            
+            // If the user choice to remove a department
+            else if (removeVal === 'department') {
+                res.forEach(department => {
+                    choiceVal = {
+                        name: department.name,
+                        value: {
+                            id: department.id,
+                            name: department.name
+                        }
+                    }
+
+                    choiceArr.push(choiceVal);
+                });
+            }
+
+            // If the user chose to remove a role
+            else {
+                res.forEach(role => {
+                    choiceVal = {
+                        name: role.title,
+                        value: {
+                            id: role.id,
+                            name: role.title
+                        }
+                    }
+
+                    choiceArr.push(choiceVal);
+                });
             }
 
             choiceArr.push('Cancel');
 
             inquirer
-             .prompt(
-                {
-                    type: 'list',
-                    name: 'removeEmployee',
-                    choices: choiceArr,
-                    message: 'Which employee would you like to remove from the database?'
-                }
-             )
+             .prompt({
+                type: 'list',
+                name: 'removeChoice',
+                message: `Which ${removeVal} would you like to remove?`,
+                choices: choiceArr
+             })
              .then(function(answer) {
-                let id = answer.removeEmployee.id;
-                let employeeName = answer.removeEmployee.name;
-
-                if (answer.removeEmployee === 'Cancel') {
-                    console.clear();
-                    init();
-                } else {
-                    inquirer
-                     .prompt({
-                        type: 'confirm',
-                        name: 'areYouSure',
-                        message: `Are you sure you'd like to delete ${employeeName} from the database?`
-                     }).then(function(trueOrFalse) {
-                        console.clear();
-
-                        if (trueOrFalse.areYouSure) {
-                            connection.query(
-                                'DELETE FROM employee WHERE ?',
-            
-                                {
-                                    id: id
-                                },
-            
-                                function (err) {
-                                    if (err) throw err;
-            
-                                    console.log(`${employeeName} has been removed from the database!\n`);
-            
-                                    init();
-                                }
-                            );
-                        } else {
-                            removeEmployee();
-                        }
-                     });
-                }
-             });
-        }
-    );
-}
-
-function removeDepartment() {
-    console.clear();
-
-    connection.query(
-        'SELECT * FROM department',
-
-        function(err, res) {
-            if (err) throw err;
-            
-            var removeDepartmentArr = [];
-
-            res.forEach(department => {
-                var removeDepartmentVal = {
-                    name: department.name,
-                    value: {
-                        id: department.id,
-                        name: department.name
-                    }
-                }
-
-                removeDepartmentArr.push(removeDepartmentVal);
-            });
-
-            removeDepartmentArr.push('Cancel');
-
-            inquirer
-             .prompt({
-                type: 'list',
-                name: 'departmentChoice',
-                message: 'Which department would you like to remove?',
-                choices: removeDepartmentArr
-             })
-             .then(function(result) {
-                if (result.departmentChoice === 'Cancel') {
+                if (answer.removeChoice === 'Cancel') {
                     console.clear();
 
                     init();
@@ -1070,107 +1031,32 @@ function removeDepartment() {
                     inquirer
                      .prompt({
                         type: 'confirm',
-                        name: 'departmentAreYouSure',
-                        message: `Are you sure you would like to remove the ${result.departmentChoice.name} department?`
+                        name: 'yesOrNo',
+                        message: `Are you sure you would like to remove '${answer.removeChoice.name}' from the ${removeVal} database?`
                      })
-                     .then(function(answer) {
-                        if (answer.departmentAreYouSure) {
+                     .then(function(choice) {
+                        if (choice.yesOrNo === false) {
                             console.clear();
 
-                            connection.query(
-                                'DELETE FROM department WHERE ?',
-
-                                {
-                                    id: result.departmentChoice.id
-                                },
-
-                                function(err, res) {
-                                    if (err) throw err;
-
-                                    console.log(`The ${result.departmentChoice.name} department has been removed from the database!\n`);
-
-                                    init();
-                                }
-                            );
+                            remove();
                         } else {
-                            console.clear();
-                            
-                            removeDepartment();
-                        }
-                     })
-                }
-             })
-        }
-    );
-}
-
-function removeRole() {
-    console.clear();
-
-    connection.query(
-        'SELECT * FROM role',
-
-        function(err, res) {
-            if (err) throw err;
-
-            var removeRoleArr = [];
-
-            res.forEach(role => {
-                var removeRoleVal = {
-                    name: role.title,
-                    value: {
-                        id: role.id,
-                        name: role.title
-                    }
-                }
-
-                removeRoleArr.push(removeRoleVal);
-            });
-
-            removeRoleArr.push('Cancel');
-
-            inquirer
-             .prompt({
-                type: 'list',
-                name: 'removeRoleChoice',
-                message: 'Which role would you like to remove?',
-                choices: removeRoleArr
-             })
-             .then(function(result) {
-                if (result.removeRoleChoice === 'Cancel') {
-                    console.clear();
-
-                    init();
-                } else {
-                    inquirer
-                     .prompt({
-                        type: 'confirm',
-                        name: 'roleAreYouSure',
-                        message: `Are you sure you would like to remove ${result.removeRoleChoice.name} from the database?`
-                     })
-                     .then(function(answer) {
-                        if (answer.roleAreYouSure) {
                             connection.query(
-                                'DELETE FROM role WHERE ?',
+                                `DELETE FROM ${removeVal} WHERE ?`,
 
                                 {
-                                    id: result.removeRoleChoice.id
+                                    id: answer.removeChoice.id
                                 },
 
-                                function (err, res) {
-                                    if (err) throw err;
+                                function(error, results) {
+                                    if (error) throw error;
 
                                     console.clear();
 
-                                    console.log(`The role of ${result.removeRoleChoice.name} has been removed from the database!\n`);
+                                    console.log(`${answer.removeChoice.name} has been removed from the ${removeVal} database!\n`);
 
                                     init();
                                 }
                             );
-                        } else {
-                            console.clear();
-
-                            removeRole();
                         }
                      })
                 }
