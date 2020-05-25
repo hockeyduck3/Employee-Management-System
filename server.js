@@ -959,14 +959,18 @@ function updateEmployeeRole() {
 function remove() {
     console.clear();
 
+    // First query to run. This will grab all the details from either the employee table, department table, or the role table.
     connection.query(
         `SELECT * FROM ${removeVal}`,
 
         function (err, res) {
             if (err) throw err;
 
+            // Empty variables to be used later
             var choiceArr = [];
             var choiceVal;
+
+            // Depending on what the user chooses, 1 of 3 forEach loops below will run.
 
             // If the user chose to remove an Employee
             if (removeVal === 'employee') {
@@ -1013,8 +1017,10 @@ function remove() {
                 });
             }
 
+            // No matter which forEach loop runs, always give the user the option to cancel.
             choiceArr.push('Cancel');
 
+            // First inquirer prompt to ask the user which employee, department, or role they'd like to remove.
             inquirer
              .prompt({
                 type: 'list',
@@ -1023,11 +1029,15 @@ function remove() {
                 choices: choiceArr
              })
              .then(function(answer) {
+                // If the user chose to cancel, clear the console and got back to the main screen.
                 if (answer.removeChoice === 'Cancel') {
                     console.clear();
 
                     init();
-                } else {
+                } 
+                
+                else {
+                    // This second inquirer prompt is a confirm screen, so the user has one last chance to decide whether to delete or not.
                     inquirer
                      .prompt({
                         type: 'confirm',
@@ -1035,11 +1045,16 @@ function remove() {
                         message: `Are you sure you would like to remove '${answer.removeChoice.name}' from the ${removeVal} database?`
                      })
                      .then(function(choice) {
+                        // If the user chose to cancel, clear the console and run the remove function again.
+                        // The remove function will still know whether the user chose employee, department, or role, and act accordingly.
                         if (choice.yesOrNo === false) {
                             console.clear();
 
                             remove();
-                        } else {
+                        } 
+                        
+                        else {
+                            // If the user chose yes, then remove the item from the matching table with the matching id number.
                             connection.query(
                                 `DELETE FROM ${removeVal} WHERE ?`,
 
@@ -1047,6 +1062,8 @@ function remove() {
                                     id: answer.removeChoice.id
                                 },
 
+
+                                // After that clear the console, let the user know that the item has been removed, and go back to the main screen.
                                 function(error, results) {
                                     if (error) throw error;
 
