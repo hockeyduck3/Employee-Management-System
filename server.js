@@ -54,6 +54,7 @@ var secondSetQuestions;
 var removeVal;
 var updateVal;
 var addVal;
+var viewVal;
 
 // All the functions need for the application
 
@@ -165,7 +166,8 @@ function init() {
 
             switch(answer.secondQuestion) {
                 case 'View All Employees':
-                    viewAllEmployees();
+                    viewVal = 'employee';
+                    view();
                     break;
     
                 case 'View All Employees By Department':
@@ -177,11 +179,13 @@ function init() {
                     break;
     
                 case 'View All Departments':
-                    viewAllDepartments();
+                    viewVal = 'department';
+                    view();
                     break;
                 
                 case 'View All Roles':
-                    viewAllRoles();
+                    viewVal = 'role';
+                    view();
                     break;
 
                 case 'Add New Employee':
@@ -230,113 +234,84 @@ function init() {
 }
 
 // All of the view functions
-function viewAllEmployees() {
+function view() {
+    var querySearch;
+
+    if (viewVal === 'employee') {
+        querySearch = `SELECT employee.*, role.title, role.salary, department.name
+        FROM employee
+        INNER JOIN role 
+           ON (employee.role_id = role.id)
+        INNER JOIN department
+           ON (role.department_id = department.id)`;
+    } 
+
+    else if (viewVal === 'role') {
+        querySearch = `SELECT role.*, department.name 
+        FROM role
+        INNER JOIN department
+           ON (department.id = role.department_id)`;
+    } 
+    
+    else {
+        querySearch = 'SELECT * FROM department';
+    }
+
     connection.query(
-        `SELECT employee.*, role.title, role.salary, department.name
-         FROM employee
-         INNER JOIN role 
-            ON (employee.role_id = role.id)
-         INNER JOIN department
-            ON (role.department_id = department.id)`,
+        querySearch,
 
         function (err, res) {
             if (err) throw err;
 
-            var employeeArr = [];
+            var tableArr = [];
+            
+            res.forEach(item => {
+                if (viewVal === 'employee') {
+                    var manager_name = null;
 
-            res.forEach(element => {
-                var manager_name = null;
+                    if (item.manager_id !== null) {
+                        var manager_id = item.manager_id;
 
-                if (element.manager_id !== null) {
-                    var manager_id = element.manager_id;
+                        res.forEach(id => {
+                            if (id.id === manager_id) {
+                                manager_name = `${id.first_name} ${id.last_name}`;
+                            }
+                        });
+                    }
 
-                    res.forEach(id => {
-                        if (id.id === manager_id) {
-                            manager_name = `${id.first_name} ${id.last_name}`;
-                        }
-                    });
+                    var itemVal = {
+                        id: item.id,
+                        first_name: item.first_name,
+                        last_name: item.last_name,
+                        title: item.title,
+                        department: item.name,
+                        salary: item.salary,
+                        manager: manager_name
+                    }
                 }
 
-                let employeeVal = {
-                    id: element.id,
-                    first_name: element.first_name,
-                    last_name: element.last_name,
-                    title: element.title,
-                    department: element.name,
-                    salary: element.salary,
-                    manager: manager_name
+                else if (viewVal === 'role') {
+                    var itemVal = {
+                        id: item.id,
+                        title: item.title,
+                        salary: item.salary,
+                        department: item.name
+                    }
                 }
 
-                employeeArr.push(employeeVal);
-            });
-
-            let employeeTable = cTable.getTable(employeeArr);
-
-            // Added in the line breaks before and after the table for readability
-            console.table(`\n${employeeTable}\n`);
-
-            init();
-        }
-    );
-}
-
-function viewAllDepartments() {
-    console.clear();
-
-    connection.query(
-        'SELECT * FROM department',
-
-        function(err, res) {
-            if (err) throw err;
-
-            var departmentArr = [];
-
-            res.forEach(department => {
-                var departmentResults = {
-                    id: department.id,
-                    department_name: department.name
+                else {
+                    var itemVal = {
+                        id: item.id,
+                        department_name: item.name
+                    }
                 }
 
-                departmentArr.push(departmentResults);
-            });
+                tableArr.push(itemVal)
+            })
+            
+            let table = cTable.getTable(tableArr);
 
-            let newTable = cTable.getTable(departmentArr);
-
-            console.log(newTable);
-
-            init();
-        }
-    );
-}
-
-function viewAllRoles() {
-    console.clear();
-
-    connection.query(
-        `SELECT role.*, department.name 
-         FROM role
-         INNER JOIN department
-            ON (department.id = role.department_id)`,
-
-        function(err, res) {
-            if (err) throw err;
-
-            var roleArr = [];
-
-            res.forEach(role => {
-                var roleVal = {
-                    id: role.id,
-                    title: role.title,
-                    salary: role.salary,
-                    department: role.name
-                }
-
-                roleArr.push(roleVal);
-            });
-
-            let roleTable = cTable.getTable(roleArr);
-
-            console.log(roleTable);
+            console.log(`\n${table}\n`);
 
             init();
         }
