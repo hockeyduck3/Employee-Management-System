@@ -53,6 +53,7 @@ const fieldValidation = async input => {
 var secondSetQuestions;
 var removeVal;
 var updateVal;
+var addVal;
 
 // All the functions need for the application
 
@@ -188,7 +189,8 @@ function init() {
                     break;
     
                 case 'Add New Department':
-                    addDepartment();
+                    addVal = 'department';
+                    add();
                     break;
 
                 case 'Add New Role':
@@ -666,34 +668,6 @@ function addNewEmployee() {
      });
 }
 
-function addDepartment() {
-    inquirer
-     .prompt({
-        type: 'input',
-        name: 'departmentName',
-        message: 'What would you like to name this department?',
-        validate: fieldValidation
-     })
-     .then(function(answer) {
-        console.clear();
-
-        connection.query(
-            'INSERT INTO department SET ?',
-            {
-                name: answer.departmentName
-            },
-            function(err) {
-                if (err) throw err;
-
-
-                console.log(`${answer.departmentName} has been added to the database!\n`);
-
-                init();
-            }
-        );
-     });
-}
-
 function addRole() {
     console.clear();
 
@@ -771,6 +745,35 @@ function addRole() {
              });
         }
     );
+}
+
+function add() {
+    if (addVal === 'department') {
+        inquirer
+         .prompt({
+            type: 'input',
+            name: 'departmentName',
+            message: 'What would you like to name this department?',
+            validate: fieldValidation
+         })
+         .then(function(answer) {
+            console.clear();
+    
+            connection.query(
+                'INSERT INTO department SET ?',
+                {
+                    name: answer.departmentName
+                },
+                function(err) {
+                    if (err) throw err;
+    
+                    console.log(`${answer.departmentName} has been added to the database!\n`);
+    
+                    init();
+                }
+            );
+         });
+    }
 }
 
 // Update function
