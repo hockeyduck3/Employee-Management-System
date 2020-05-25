@@ -781,7 +781,6 @@ function update() {
     var roleChoicesArr = [];
     var arrayChoice;
     var promptMessage;
-    var settingChoice;
 
     // This query runs first no matter what
     // This is so that if the user chose to update the employee role
@@ -862,13 +861,10 @@ function update() {
 
                     newUpdateChoice[index] = 'No one';
 
-                    // Set the next inquirer prompt message
                     promptMessage = `Who would you like ${answer.userChoice.first_name}'s manager to be?`;
                     
-                    // Set the next inquirer choice array to the new filtered array
                     arrayChoice = newUpdateChoice;
 
-                    // Run the next inquirer function
                     secondUpdateQuestion();
                 } 
 
@@ -893,28 +889,24 @@ function update() {
                      })
                      .then(function(choice) {
 
+                        var settingChoice = [
+                            {
+                                id: answer.userChoice.id
+                            }
+                        ];
+
                         // If the user chose to update the employee's manager
                         if (updateVal === 'manager') {
-                            settingChoice = [
-                                {
-                                    manager_id: choice.userSecondChoice.id
-                                },
-                                {
-                                    id: answer.userChoice.id
-                                }
-                            ]
+                            settingChoice.unshift({
+                                manager_id: choice.userSecondChoice.id
+                            });
                         } 
                         
                         // Or if the user chose to update the employee's role
                         else {
-                            settingChoice = [
-                                {
-                                    role_id: choice.userSecondChoice.id
-                                },
-                                {
-                                    id: answer.userChoice.id
-                                }
-                            ]
+                            settingChoice.unshift({
+                                role_id: choice.userSecondChoice.id
+                            });
                         }
 
                         // Connection query to update the employee role or manager
@@ -927,6 +919,8 @@ function update() {
                                 if (err) throw err;
 
                                 console.clear();
+
+                                console.log(settingChoice)
 
                                 // Depending on what the user chose, this if statement will log the appropriate response
                                 if (updateVal === 'manager') {
