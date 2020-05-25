@@ -561,7 +561,6 @@ function employeesByManager() {
     );
 }
 
-
 // All of the add functions
 function addNewEmployee() {
     var roleChoices = [];
@@ -774,9 +773,9 @@ function addRole() {
     );
 }
 
-
 // Update function
 function update() {
+    // Variables needed for the function
     var updateChoice = [];
     var newUpdateChoice = [];
     var roleChoicesArr = [];
@@ -784,6 +783,8 @@ function update() {
     var promptMessage;
     var settingChoice;
 
+    // This query runs first no matter what
+    // This is so that if the user chose to update the employee role
     connection.query(
         'SELECT * FROM role',
 
@@ -804,6 +805,7 @@ function update() {
         }
     );
 
+    // This is the main query
     connection.query(
         `SELECT employee.*, role.title, role.department_id
          FROM employee
@@ -813,9 +815,11 @@ function update() {
         function(err, res) {
             if (err) throw err;
 
+            // Loop through all of the employee's in the database
             res.forEach(employee => {
               let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
               
+              // Add all the values into the updateChoice array  
               let updateChoiceVal = {
                 name: name,
                 value: {
@@ -829,8 +833,10 @@ function update() {
               updateChoice.push(updateChoiceVal);
             });
 
+            // Always give the user the option to cancel
             updateChoice.push('Cancel');
 
+            // First inquirer question to see which employee they'd like to update. Regardless of if they chose to update role or manager.
             inquirer
              .prompt({
                 type: 'list',
@@ -839,26 +845,34 @@ function update() {
                 choices: updateChoice
              })
              .then(function(answer) {
+                //  If the user chose to cancel then clear the console and go back to the main screen
                 if (answer.userChoice === 'Cancel') {
                     console.clear();
 
                     init();
                 }
 
+                // If the user chose to update the employee's manager
                 else if (updateVal === 'manager') {
+                    // Filter out the employee that the user chose to update
                     newUpdateChoice = updateChoice.filter(x => x.name !== answer.userChoice.name);
 
+                    // Find the index of 'Cancel' and replace it with 'No one'
                     let index = newUpdateChoice.indexOf('Cancel');
 
                     newUpdateChoice[index] = 'No one';
 
+                    // Set the next inquirer prompt message
                     promptMessage = `Who would you like ${answer.userChoice.first_name}'s manager to be?`;
                     
+                    // Set the next inquirer choice array to the new filtered array
                     arrayChoice = newUpdateChoice;
 
+                    // Run the next inquirer function
                     secondUpdateQuestion();
                 } 
 
+                // If the user chose to update the employee's role
                 else {
                     promptMessage = `Which position would you like ${answer.userChoice.first_name} to have?`;
 
@@ -867,6 +881,8 @@ function update() {
                     secondUpdateQuestion();
                 }
 
+
+                // This next inquirer prompt is within a function so this way if the user chose to cancel this inquirer prompt wouldn't run anyways.
                 function secondUpdateQuestion() {
                     inquirer
                      .prompt({
@@ -876,6 +892,8 @@ function update() {
                         choices: arrayChoice
                      })
                      .then(function(choice) {
+
+                        // If the user chose to update the employee's manager
                         if (updateVal === 'manager') {
                             settingChoice = [
                                 {
@@ -885,7 +903,10 @@ function update() {
                                     id: answer.userChoice.id
                                 }
                             ]
-                        } else {
+                        } 
+                        
+                        // Or if the user chose to update the employee's role
+                        else {
                             settingChoice = [
                                 {
                                     role_id: choice.userSecondChoice.id
@@ -896,6 +917,7 @@ function update() {
                             ]
                         }
 
+                        // Connection query to update the employee role or manager
                         connection.query(
                             `UPDATE employee SET ? WHERE ?`,
 
@@ -906,6 +928,7 @@ function update() {
 
                                 console.clear();
 
+                                // Depending on what the user chose, this if statement will log the appropriate response
                                 if (updateVal === 'manager') {
                                     if (choice.userSecondChoice !== 'No one') {
                                         console.log(`${answer.userChoice.first_name}'s manager has been updated to ${choice.userSecondChoice.name_without_id}!\n`)
