@@ -52,6 +52,7 @@ const fieldValidation = async input => {
 
 var secondSetQuestions;
 var removeVal;
+var updateVal;
 
 // All the functions need for the application
 
@@ -195,11 +196,13 @@ function init() {
                     break;
     
                 case 'Update Employee Role':
-                    updateEmployeeRole()
+                    updateVal = 'role';
+                    update();
                     break;
                         
                 case 'Update Employee Manager':
-                    updateEmployeeManager();
+                    updateVal = 'manager';
+                    update();
                     break;
                             
                 case 'Remove An Employee':
@@ -772,93 +775,35 @@ function addRole() {
 }
 
 
-// All the update functions
-function updateEmployeeManager() {
+// Update function
+function update() {
+    var updateChoice = [];
+    var newUpdateChoice = [];
+    var roleChoicesArr = [];
+    var arrayChoice;
+    var promptMessage;
+    var settingChoice;
+
     connection.query(
-        'SELECT * FROM employee',
+        'SELECT * FROM role',
 
-        function(err, res) {
-            if (err) throw err;
+        function(error, results) {
+            if (error) throw error;
 
-            var employeeUpdateChoice = [];
-
-            res.forEach(employee => {
-              let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
-              
-              let employeeUpdateVal = {
-                name: name,
-                value: {
-                    name: name,
-                    first_name: employee.first_name,
-                    name_without_id: `${employee.first_name} ${employee.last_name}`,
-                    id: employee.id
+            results.forEach(role => {
+                var roleChoices = {
+                    name: role.title,
+                    value: {
+                        id: role.id,
+                        name: role.title
+                    }
                 }
-              }
 
-              employeeUpdateChoice.push(employeeUpdateVal);
+                roleChoicesArr.push(roleChoices);
             });
-
-            employeeUpdateChoice.push('Cancel');
-
-            inquirer
-             .prompt({
-                type: 'list',
-                name: 'employeeToUpdate',
-                message: 'Which Employee would you like to update?',
-                choices: employeeUpdateChoice
-             }).then(function(firstAnswer) {
-                if (firstAnswer.employeeToUpdate === 'Cancel') {
-                    console.clear();
-                    init();
-                } else {
-                    inquirer
-                     .prompt({
-                         type: 'list',
-                         name: 'managerChoice',
-                         message: `Who would you like ${firstAnswer.employeeToUpdate.first_name}'s manager to be?`,
-                         choices: function() {
-                            let newChoice = employeeUpdateChoice.filter(x => x.name !== firstAnswer.employeeToUpdate.name);
-
-                            let index = newChoice.indexOf('Cancel');
-
-                            newChoice[index] = 'No one';
-
-                            return newChoice
-                         }
-                     }).then(function(secondAnswer) {
-                        connection.query(
-                            'UPDATE employee SET ? WHERE ?',
-                            [
-                                {
-                                    manager_id: secondAnswer.managerChoice.id
-                                },
-                                {
-                                    id: firstAnswer.employeeToUpdate.id
-                                }
-                            ],
-
-                            function(err, res) {
-                                if (err) throw err;
-
-                                console.clear();
-
-                                if (secondAnswer.managerChoice !== 'No one') {
-                                    console.log(`${firstAnswer.employeeToUpdate.first_name}'s manager has been updated to ${secondAnswer.managerChoice.name_without_id}!\n`)
-                                } else {
-                                    console.log(`${firstAnswer.employeeToUpdate.first_name}'s manager has been updated!\n`);
-                                }
-
-                                init();
-                            }
-                        );
-                     })
-                }
-             });
         }
     );
-}
 
-function updateEmployeeRole() {
     connection.query(
         `SELECT employee.*, role.title, role.department_id
          FROM employee
@@ -868,94 +813,122 @@ function updateEmployeeRole() {
         function(err, res) {
             if (err) throw err;
 
-            var employeeUpdateChoice = [];
-
             res.forEach(employee => {
-                let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
+              let name = `${employee.first_name} ${employee.last_name}, id: ${employee.id}`;
               
-                let employeeUpdateVal = {
+              let updateChoiceVal = {
+                name: name,
+                value: {
                     name: name,
-                    value: {
-                        name: name,
-                        first_name: employee.first_name,
-                        id: employee.id,
-                    }
+                    first_name: employee.first_name,
+                    name_without_id: `${employee.first_name} ${employee.last_name}`,
+                    id: employee.id
                 }
+              }
 
-                employeeUpdateChoice.push(employeeUpdateVal);
+              updateChoice.push(updateChoiceVal);
             });
 
-            employeeUpdateChoice.push('Cancel');
+            updateChoice.push('Cancel');
 
             inquirer
              .prompt({
                 type: 'list',
-                name: 'employee',
+                name: 'userChoice',
                 message: 'Which employee would you like to update?',
-                choices: employeeUpdateChoice
-             }).then(function(response) {
-                connection.query(
-                    'SELECT * FROM role',
-
-                    function(err, res) {
-                        if (err) throw err;
-
-                        var positionArr = [];
-
-                        res.forEach(position => {
-                            var positionVal = {
-                                name: position.title,
-                                value: {
-                                    id: position.id,
-                                    position_name: position.title
-                                }
-                            }
-
-                            positionArr.push(positionVal);
-                        });
-
-                        inquirer
-                         .prompt({
-                            type: 'list',
-                            name: 'positionChoice',
-                            message: `Which position would you like ${response.employee.first_name} to have?`,
-                            choices: positionArr
-                         })
-                         .then(function(answer) {
-                            console.log(answer)
-
-                            connection.query(
-                                'UPDATE employee SET ? WHERE ?',
-
-                                [
-                                    {
-                                        role_id: answer.positionChoice.id
-                                    },
-                                    {
-                                        id: response.employee.id
-                                    }
-                                ],
-
-                                function (err, res) {
-                                    if (err) throw err;
-
-                                    console.clear();
-
-                                    console.log(`${response.employee.first_name}'s position has been updated to ${answer.positionChoice.position_name}!\n`);
-
-                                    init();
-                                }
-                            );
-                         })
-                    }
-                );
+                choices: updateChoice
              })
+             .then(function(answer) {
+                if (answer.userChoice === 'Cancel') {
+                    console.clear();
+
+                    init();
+                }
+
+                else if (updateVal === 'manager') {
+                    newUpdateChoice = updateChoice.filter(x => x.name !== answer.userChoice.name);
+
+                    let index = newUpdateChoice.indexOf('Cancel');
+
+                    newUpdateChoice[index] = 'No one';
+
+                    promptMessage = `Who would you like ${answer.userChoice.first_name}'s manager to be?`;
+                    
+                    arrayChoice = newUpdateChoice;
+
+                    secondUpdateQuestion();
+                } 
+
+                else {
+                    promptMessage = `Which position would you like ${answer.userChoice.first_name} to have?`;
+
+                    arrayChoice = roleChoicesArr;
+
+                    secondUpdateQuestion();
+                }
+
+                function secondUpdateQuestion() {
+                    inquirer
+                     .prompt({
+                        type: 'list',
+                        name: 'userSecondChoice',
+                        message: promptMessage,
+                        choices: arrayChoice
+                     })
+                     .then(function(choice) {
+                        if (updateVal === 'manager') {
+                            settingChoice = [
+                                {
+                                    manager_id: choice.userSecondChoice.id
+                                },
+                                {
+                                    id: answer.userChoice.id
+                                }
+                            ]
+                        } else {
+                            settingChoice = [
+                                {
+                                    role_id: choice.userSecondChoice.id
+                                },
+                                {
+                                    id: answer.userChoice.id
+                                }
+                            ]
+                        }
+
+                        connection.query(
+                            `UPDATE employee SET ? WHERE ?`,
+
+                            settingChoice,
+
+                            function (err, res) {
+                                if (err) throw err;
+
+                                console.clear();
+
+                                if (updateVal === 'manager') {
+                                    if (choice.userSecondChoice !== 'No one') {
+                                        console.log(`${answer.userChoice.first_name}'s manager has been updated to ${choice.userSecondChoice.name_without_id}!\n`)
+                                    } else {
+                                        console.log(`${answer.userChoice.first_name}'s manager has been updated!\n`);
+                                    }
+                                } 
+                            
+                                else {
+                                    console.log(`${answer.userChoice.first_name}'s position has been updated to ${choice.userSecondChoice.name}!\n`);
+                                }
+
+                                init();
+                            }
+                        );
+                    });
+                }
+             });
         }
     );
 }
 
-
-// All the remove functions
+//Remove function
 function remove() {
     console.clear();
 
