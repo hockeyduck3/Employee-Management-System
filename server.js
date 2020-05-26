@@ -50,10 +50,10 @@ const fieldValidation = async input => {
     return true;
 }
 
+// Variables needed
 var secondSetQuestions;
 var removeVal;
 var updateVal;
-var addVal;
 var viewVal;
 var viewByVal;
 
@@ -196,8 +196,7 @@ function init() {
                     break;
     
                 case 'Add New Department':
-                    addVal = 'department';
-                    add();
+                    addDepartment();
                     break;
 
                 case 'Add New Role':
@@ -240,6 +239,7 @@ function init() {
 function view() {
     var querySearch;
 
+    // Check to see if the user chose employee, role, or department
     if (viewVal === 'employee') {
         querySearch = `SELECT employee.*, role.title, role.salary, department.name
         FROM employee
@@ -267,8 +267,10 @@ function view() {
             if (err) throw err;
 
             var tableArr = [];
-            
+        
+            // I chose to run the code in a single forEach instead of having the code decide between 3 different forEach loops
             res.forEach(item => {
+                // If the user chose employee
                 if (viewVal === 'employee') {
                     var manager_name = null;
 
@@ -293,6 +295,7 @@ function view() {
                     }
                 }
 
+                // If the user chose role
                 else if (viewVal === 'role') {
                     var itemVal = {
                         id: item.id,
@@ -302,6 +305,7 @@ function view() {
                     }
                 }
 
+                // If the user chose department
                 else {
                     var itemVal = {
                         id: item.id,
@@ -325,6 +329,7 @@ function viewBy() {
     var querySearch;
     var managerChoice = [];
 
+    // This connection will run first so this way the later code has an array to reference
     connection.query(
         'SELECT * FROM employee',
 
@@ -359,8 +364,11 @@ function viewBy() {
             var firstChoice = [];
 
             res.forEach(item => {
+                // Check and see if the user chose to see employee's by manager
                 if (viewByVal === 'manager') {
+                    // Then check and see if the employee has a manager attached to their profile
                     if (item.manager_id !== null) {
+                        // Loop through and see who is the employee's manager
                         res.forEach(element => {
                             if (item.manager_id === element.id) {
                                 let name = `${element.first_name} ${element.last_name}`;
@@ -392,6 +400,7 @@ function viewBy() {
 
             });
             
+            // If the firstChoice array is empty
             if (firstChoice.length === 0) {
                 console.log('Doesn\'t look like you have any Employees with a Manager.\n');
 
@@ -399,8 +408,10 @@ function viewBy() {
             } 
             
             else {
+                // Always give the user the option to cancel
                 firstChoice.push('Cancel');
 
+                // Ask which department or manager the user wants to search by
                 inquirer
                  .prompt({
                     type: 'list',
@@ -450,8 +461,11 @@ function viewBy() {
                                 results.forEach(result => {
                                     var manager_name = null;
 
+                                    // Run this for loop if an employee has a manager
                                     if (result.manager_id !== null) {
+
                                         for (let i = 0; managerChoice.length; i++) {
+                                            
                                             if (result.manager_id === managerChoice[i].id) {
                                                 manager_name = managerChoice[i].name;
                                                 break;
@@ -674,7 +688,7 @@ function addRole() {
     );
 }
 
-function add() {
+function addDepartment() {
     if (addVal === 'department') {
         inquirer
          .prompt({
