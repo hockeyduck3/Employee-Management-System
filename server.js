@@ -55,6 +55,7 @@ var removeVal;
 var updateVal;
 var addVal;
 var viewVal;
+var viewByVal;
 
 // All the functions need for the application
 
@@ -171,11 +172,13 @@ function init() {
                     break;
     
                 case 'View All Employees By Department':
-                    employeesByDepartment();
+                    viewByVal = 'department';
+                    viewBy();
                     break;
     
                 case 'View All Employees By Manager':
-                    employeesByManager();
+                    viewByVal = 'manager';
+                    viewBy();
                     break;
     
                 case 'View All Departments':
@@ -318,180 +321,116 @@ function view() {
     );
 }
 
-function employeesByDepartment() {
-    connection.query(
-        'SELECT * FROM department',
+function viewBy() {
+    var querySearch;
+    var managerChoice = [];
 
-        function(err, res) {
+    connection.query(
+        'SELECT * FROM employee',
+
+        function (err, res) {
             if (err) throw err;
 
-            inquirer
-             .prompt({
-                type: 'list',
-                name: 'departmentName',
-                message: 'Which department would you like?',
-                choices: function() {
-                    var departmentChoice = [];
-
-                    res.forEach(item => {
-                        var departmentVal = {
-                            name: item.name,
-                            value: {
-                                department_id: item.id
-                            }
-                        }
-
-                        departmentChoice.push(departmentVal);
-
-                    });
-
-                    departmentChoice.push('Cancel');
-
-                    return departmentChoice;
+            res.forEach(employee => {
+                var managerChoiceVal = {
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    id: employee.id
                 }
-             })
-             .then(function(answer) {
-                var employeeManagerArr = [];
 
-                console.clear()
-                
-                if (answer.departmentName === 'Cancel') {
-                    init();
-                } else {
-                    
-                    // This connection query will run first to make sure the code below will have an array to reference
-                    // Just in case if one of the employee's manager is not null
-                    connection.query(
-                        'SELECT * FROM employee',
-    
-                        function(err, res) {
-                            if (err) throw err;
-    
-                            res.forEach(item => {
-                                var employeeManagerVal = {
-                                    id: item.id,
-                                    name: `${item.first_name} ${item.last_name}`
-                                }
-    
-                                employeeManagerArr.push(employeeManagerVal);
-                            });
-                        }
-                    );
-    
-                    connection.query(
-                        `SELECT employee.*, role.title, role.salary, department.name
-                         FROM employee
-                         INNER JOIN role 
-                            ON (employee.role_id = role.id)
-                         INNER JOIN department
-                            ON (role.department_id = department.id)
-                         WHERE ?`,
-    
-                        {
-                            department_id: answer.departmentName.department_id
-                        },
-    
-                        function (err, res) {
-                            if (err) throw err;
-    
-                            var byDepartmentArr = [];
-            
-                            res.forEach(item => {
-                                var byDepartmentManager_name = null;
-                                if (item.manager_id !== null) {
-    
-                                    // Loop through the array above and check to see which employee id matches the manager id
-                                    for (let i = 0; i < employeeManagerArr.length; i++) {
-                                        if (item.manager_id === employeeManagerArr[i].id) {
-                                            byDepartmentManager_name = employeeManagerArr[i].name;
-                                            break;
-                                        }
-                                    }
-                                }
-    
-                                byDepartmentArr.push({
-                                    id: item.id,
-                                    first_name: item.first_name,
-                                    last_name: item.last_name,
-                                    title: item.title,
-                                    department: item.name,
-                                    salary: item.salary,
-                                    manager: byDepartmentManager_name
-                                });
-                            });
-    
-                            if (byDepartmentArr.length !== 0) {
-                                let departmentTable = cTable.getTable(byDepartmentArr);
-    
-                                console.log(`${departmentTable}\n`);
-                            } else {
-                                console.log('Sorry, but it looks like that Department doesn\'t have any employees. :(\n')
-                            }
-    
-                            init();
-                        }
-                    );
-                }
-             });
-
+                managerChoice.push(managerChoiceVal);
+            })
         }
     );
-}
 
-function employeesByManager() {
+    if (viewByVal === 'manager') {
+        querySearch = 'SELECT * FROM employee';
+    }
+
+    else {
+        querySearch = 'SELECT * FROM department';
+    }
+
     connection.query(
-        `SELECT employee.*, role.title, role.salary, department.name
-         FROM employee
-         INNER JOIN role 
-            ON (employee.role_id = role.id)
-         INNER JOIN department
-            ON (role.department_id = department.id)`,
+        querySearch,
 
-        function(err, res) {
+        function (err, res) {
             if (err) throw err;
 
-            var managerChoicesArr = [];
+            var firstChoice = [];
 
             res.forEach(item => {
-                if (item.manager_id !== null) {
-                    res.forEach(element => {
-                        if (item.manager_id === element.id) {
-                            let name = `${element.first_name} ${element.last_name}`;
-
-                            var managerChoicesVal = {
-                                name: name,
-                                value: {
+                if (viewByVal === 'manager') {
+                    if (item.manager_id !== null) {
+                        res.forEach(element => {
+                            if (item.manager_id === element.id) {
+                                let name = `${element.first_name} ${element.last_name}`;
+    
+                                var firstChoiceVal = {
                                     name: name,
-                                    id: element.id
+                                    value: {
+                                        name: name,
+                                        id: element.id
+                                    }
                                 }
+
+                                firstChoice.push(firstChoiceVal);
                             }
-
-                            managerChoicesArr.push(managerChoicesVal);
-                        }
-                    })
+                        })
+                    }
                 }
-            });
 
-            if (managerChoicesArr.length === 0) {
+                else {
+                    var firstChoiceVal = {
+                        name: item.name,
+                        value: {
+                            id: item.id
+                        }
+                    }
+
+                    firstChoice.push(firstChoiceVal);
+                }
+
+            });
+            
+            if (firstChoice.length === 0) {
                 console.log('Doesn\'t look like you have any Employees with a Manager.\n');
 
                 init();
-            } else {
-                managerChoicesArr.push('Cancel');
-                
+            } 
+            
+            else {
+                firstChoice.push('Cancel');
+
                 inquirer
                  .prompt({
-                     type: 'list',
-                     name: 'managerPick',
-                     message: 'Which manager would you like to search by?',
-                     choices: managerChoicesArr
+                    type: 'list',
+                    name: 'userChoice',
+                    message: `Which ${viewByVal} would you like to search by?`,
+                    choices: firstChoice
                  })
-                 .then(function(response) {
+                 .then(function (answer) {
                     console.clear();
 
-                    if (response.managerPick === 'Cancel') {
+                    if (answer.userChoice === 'Cancel') {
                         init();
-                    } else {
+                    }
+
+                    else {
+                        var whereVal;
+
+                        if (viewByVal === 'manager') {
+                            whereVal = {
+                                manager_id: answer.userChoice.id
+                            }
+                        } 
+                        
+                        else {
+                            whereVal = {
+                                department_id: answer.userChoice.id
+                            }
+                        }
+
+                        
                         connection.query(
                             `SELECT employee.*, role.title, role.salary, department.name
                              FROM employee
@@ -499,40 +438,53 @@ function employeesByManager() {
                                  ON (employee.role_id = role.id)
                              INNER JOIN department
                                  ON (role.department_id = department.id)
-                             WHERE ?`, 
+                             WHERE ?`,
 
-                            {
-                                manager_id: response.managerPick.id
-                            },
+                            whereVal,
 
-                            function (err, res) {
-                                if (err) throw err;
+                            function (error, results) {
+                                if (error) throw error;
 
-                                var results = [];
+                                var viewByTable = [];
 
-                                res.forEach(employee => {
-                                    var resultsVal = {
-                                        id: employee.id,
-                                        first_name: employee.first_name,
-                                        last_name: employee.last_name,
-                                        title: employee.title,
-                                        department: employee.name,
-                                        salary: employee.salary,
-                                        manager: response.managerPick.name
+                                results.forEach(result => {
+                                    var manager_name = null;
+
+                                    if (result.manager_id !== null) {
+                                        for (let i = 0; managerChoice.length; i++) {
+                                            if (result.manager_id === managerChoice[i].id) {
+                                                manager_name = managerChoice[i].name;
+                                                break;
+                                            }
+                                        }
                                     }
 
-                                    results.push(resultsVal);
-                                });
+                                    var tableVal = {
+                                        id: result.id,
+                                        first_name: result.first_name,
+                                        last_name: result.last_name,
+                                        title: result.title,
+                                        department: result.name,
+                                        salary: result.salary,
+                                        manager: manager_name
+                                    }
 
-                                let employeesByManagerTable = cTable.getTable(results);
+                                    viewByTable.push(tableVal);
+                                })
 
-                                console.log(`\n${employeesByManagerTable}`);
+                                if (viewByTable.length !== 0) {
+                                    let newTable = cTable.getTable(viewByTable);
+    
+                                    console.log(`${newTable}\n`);
+                                } else {
+                                    console.log('Sorry, but it looks like that Department doesn\'t have any employees. :(\n')
+                                }
 
                                 init();
                             }
                         );
                     }
-                });
+                 })
             }
         }
     );
@@ -897,8 +849,6 @@ function update() {
                                 if (err) throw err;
 
                                 console.clear();
-
-                                console.log(settingChoice)
 
                                 // Depending on what the user chose, this if statement will log the appropriate response
                                 if (updateVal === 'manager') {
